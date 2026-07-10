@@ -1,13 +1,13 @@
 {
-  "name": "miprimerjuego",
+  "name": "saltando_fronteras",
   "version": "1.0.0",
-  "description": "",
+  "description": "Juego interactivo de geografía",
+  "keywords": [],
+  "license": "ISC",
+  "author": "LucasAimetta",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  }
 }
