@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "skills": {
+    "nodejs-backend-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "autoskills-registry",
+      "computedHash": "710a5e6f83c46e8f6c43356df55c143a7375c4414559a581654ce51709138c55"
+    },
+    "nodejs-best-practices": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "7361ab02fb6b09913e3bdd9cf61c629ed6c17de9485e6a781054e5d437ccfc29"
+    },
+    "vite": {
+      "source": "antfu/skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "e0b52fe3ffea533e1e543ac8a8a20fccca3beed9f8bdc31a0934fe9f554439e8"
+    }
+  }
+}

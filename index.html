@@ -432,6 +432,7 @@ button:active {
   max-width: 1100px;
   height: auto;
   max-height: calc(100vh - 6rem);
+  transform-origin: 0 0;
 }
 
 /* Country paths */
@@ -482,6 +483,77 @@ button:active {
 @keyframes popupPulse {
   0%, 100% { box-shadow: 0 8px 30px var(--shadow); }
   50% { box-shadow: 0 8px 40px var(--accent), 0 8px 30px var(--shadow); }
+}
+
+/* Target flag (flag mode) */
+.target-flag {
+  display: none;
+  position: absolute;
+  top: 6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  text-align: center;
+}
+
+.target-flag img {
+  width: 200px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  border: 2px solid var(--accent);
+}
+
+/* Hint button */
+.hint-btn {
+  display: block;
+  margin: 0.6rem auto 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.hint-btn:hover {
+  background: var(--country-hover);
+  color: #fff;
+}
+
+.hint-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Hint text (flag mode - shows country name) */
+.hint-text {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+  animation: fadeInUp 0.3s ease;
+}
+
+/* Hint flag (country/capital modes - shows flag) */
+.hint-flag {
+  display: none;
+  position: absolute;
+  top: 13rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  animation: fadeInUp 0.3s ease;
+}
+
+.hint-flag img {
+  width: 120px;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
 }
 
 /* Timer container */
@@ -906,6 +978,7 @@ button:active {
 .explore-map-wrapper svg {
   width: 100%;
   height: 100%;
+  transform-origin: 0 0;
 }
 
 .explore-map-wrapper .country {
@@ -956,8 +1029,30 @@ button:active {
   animation: fadeInUp 0.25s ease;
 }
 
-.explore-country-info .country-flag {
-  font-size: 3.5rem;
+.country-flag-wrapper {
+  width: 100%;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+
+.country-flag-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+}
+
+.country-flag-emoji {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  background: var(--bg-card);
 }
 
 .explore-country-info .country-name {
@@ -978,6 +1073,41 @@ button:active {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--accent);
+}
+
+.country-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.detail-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-width: 60px;
+}
+
+.detail-value {
+  color: var(--text-primary);
+  font-weight: 500;
+  text-align: left;
 }
 
 .explore-zoom-hint {
@@ -1016,6 +1146,7 @@ button:active {
     <div class="mode-buttons">
       <button class="btn-mode" onclick="startGame('country')">🌍 Adivinar País</button>
       <button class="btn-mode" onclick="startGame('capital')">🏛️ Adivinar Capital</button>
+      <button class="btn-mode" onclick="startGame('flag')">🏁 Adivinar por Bandera</button>
       <button class="btn-mode" onclick="startExplore()">🗺️ Explorar Mapa</button>
     </div>
     <div class="rankings-section">
@@ -1045,6 +1176,18 @@ button:active {
   </div>
 
   <div class="target-popup" id="target-popup">Encuentra: ---</div>
+
+  <div class="target-flag" id="target-flag">
+    <img id="target-flag-img" src="" alt="¿Qué país es?" />
+    <button class="hint-btn" id="hint-btn-flag" onclick="useHint()">💡 Pista (-1 punto)</button>
+    <div class="hint-text" id="hint-text-flag" style="display:none"></div>
+  </div>
+
+  <button class="hint-btn" id="hint-btn-game" onclick="useHint()" style="position:absolute; top:13rem; left:50%; transform:translateX(-50%); z-index:20; display:none;">💡 Pista (-1 punto)</button>
+
+  <div class="hint-flag" id="hint-flag">
+    <img id="hint-flag-img" src="" alt="Pista" />
+  </div>
 
   <div class="map-container">
     <svg id="game-map"
@@ -1460,6 +1603,7 @@ button:active {
         <button onclick="saveRanking()">Guardar</button>
       </div>
     </div>
+    <button class="btn-back" onclick="startGame(state.mode)" style="margin-bottom:0.8rem;">🔄 Jugar de Nuevo</button>
     <button class="btn-back" onclick="showScreen('start')">Volver al Inicio</button>
   </div>
 </div>
@@ -1486,10 +1630,33 @@ button:active {
         Pasá el cursor sobre un país<br>para ver su información
       </div>
       <div class="explore-country-info" id="explore-country-info">
-        <span class="country-flag" id="explore-flag"></span>
+        <div class="country-flag-wrapper">
+          <img id="explore-flag-img" class="country-flag-img" src="" alt="Bandera" />
+          <span class="country-flag-emoji" id="explore-flag-emoji"></span>
+        </div>
         <span class="country-name" id="explore-name"></span>
-        <span class="country-capital-label">Capital</span>
-        <span class="country-capital" id="explore-capital"></span>
+        <div class="country-details">
+          <div class="detail-row">
+            <span class="detail-icon">🏛️</span>
+            <span class="detail-label">Capital</span>
+            <span class="detail-value" id="explore-capital"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">🗣️</span>
+            <span class="detail-label">Idioma</span>
+            <span class="detail-value" id="explore-language"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">👥</span>
+            <span class="detail-label">Población</span>
+            <span class="detail-value" id="explore-population"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">📏</span>
+            <span class="detail-label">Área</span>
+            <span class="detail-value" id="explore-area"></span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1520,188 +1687,188 @@ button:active {
 
 <script>
 /* ============================================
-   DATA — 25 PAÍSES
+   DATA — 178 PAÍSES
    ============================================ */
 const COUNTRIES = [
-  { id: "AE", nombre: "Emiratos Árabes Unidos", capital: "Abu Dabi" },
-  { id: "AF", nombre: "Afganistán", capital: "Kabul" },
-  { id: "AL", nombre: "Albania", capital: "Tirana" },
-  { id: "AM", nombre: "Armenia", capital: "Ereván" },
-  { id: "AO", nombre: "Angola", capital: "Luanda" },
-  { id: "AR", nombre: "Argentina", capital: "Buenos Aires" },
-  { id: "AT", nombre: "Austria", capital: "Viena" },
-  { id: "AU", nombre: "Australia", capital: "Canberra" },
-  { id: "AZ", nombre: "Azerbaiyán", capital: "Bakú" },
-  { id: "BA", nombre: "Bosnia y Herzegovina", capital: "Sarajevo" },
-  { id: "BD", nombre: "Bangladés", capital: "Daca" },
-  { id: "BE", nombre: "Bélgica", capital: "Bruselas" },
-  { id: "BF", nombre: "Burkina Faso", capital: "Uagadugú" },
-  { id: "BG", nombre: "Bulgaria", capital: "Sofía" },
-  { id: "BI", nombre: "Burundi", capital: "Gitega" },
-  { id: "BJ", nombre: "Benín", capital: "Porto-Novo" },
-  { id: "BN", nombre: "Brunéi", capital: "Bandar Seri Begawan" },
-  { id: "BO", nombre: "Bolivia", capital: "Sucre" },
-  { id: "BR", nombre: "Brasil", capital: "Brasilia" },
-  { id: "BS", nombre: "Bahamas", capital: "Nasáu" },
-  { id: "BT", nombre: "Bután", capital: "Timbu" },
-  { id: "BW", nombre: "Botsuana", capital: "Gaborone" },
-  { id: "BY", nombre: "Bielorrusia", capital: "Minsk" },
-  { id: "BZ", nombre: "Belice", capital: "Belmopán" },
-  { id: "CA", nombre: "Canadá", capital: "Ottawa" },
-  { id: "CD", nombre: "República Democrática del Congo", capital: "Kinshasa" },
-  { id: "CF", nombre: "República Centroafricana", capital: "Bangui" },
-  { id: "CG", nombre: "Congo", capital: "Brazzaville" },
-  { id: "CH", nombre: "Suiza", capital: "Berna" },
-  { id: "CI", nombre: "Costa de Marfil", capital: "Yamoussoukro" },
-  { id: "CL", nombre: "Chile", capital: "Santiago" },
-  { id: "CM", nombre: "Camerún", capital: "Yaundé" },
-  { id: "CN", nombre: "China", capital: "Pekín" },
-  { id: "CO", nombre: "Colombia", capital: "Bogotá" },
-  { id: "CR", nombre: "Costa Rica", capital: "San José" },
-  { id: "CU", nombre: "Cuba", capital: "La Habana" },
-  { id: "CV", nombre: "Cabo Verde", capital: "Praia" },
-  { id: "CY", nombre: "Chipre", capital: "Nicosia" },
-  { id: "CZ", nombre: "Chequia", capital: "Praga" },
-  { id: "DE", nombre: "Alemania", capital: "Berlín" },
-  { id: "DJ", nombre: "Yibuti", capital: "Yibuti" },
-  { id: "DK", nombre: "Dinamarca", capital: "Copenhague" },
-  { id: "DM", nombre: "Dominica", capital: "Roseau" },
-  { id: "DO", nombre: "República Dominicana", capital: "Santo Domingo" },
-  { id: "DZ", nombre: "Argelia", capital: "Argel" },
-  { id: "EC", nombre: "Ecuador", capital: "Quito" },
-  { id: "EE", nombre: "Estonia", capital: "Tallin" },
-  { id: "EG", nombre: "Egipto", capital: "El Cairo" },
-  { id: "ER", nombre: "Eritrea", capital: "Asmara" },
-  { id: "ES", nombre: "España", capital: "Madrid" },
-  { id: "ET", nombre: "Etiopía", capital: "Adís Abeba" },
-  { id: "FI", nombre: "Finlandia", capital: "Helsinki" },
-  { id: "FK", nombre: "Islas Malvinas", capital: "Puerto Stanley" },
-  { id: "FR", nombre: "Francia", capital: "París" },
-  { id: "GA", nombre: "Gabón", capital: "Libreville" },
-  { id: "GB", nombre: "Reino Unido", capital: "Londres" },
-  { id: "GE", nombre: "Georgia", capital: "Tiflis" },
-  { id: "GH", nombre: "Ghana", capital: "Acra" },
-  { id: "GL", nombre: "Groenlandia", capital: "Nuuk" },
-  { id: "GM", nombre: "Gambia", capital: "Banjul" },
-  { id: "GN", nombre: "Guinea", capital: "Conakry" },
-  { id: "GQ", nombre: "Guinea Ecuatorial", capital: "Malabo" },
-  { id: "GR", nombre: "Grecia", capital: "Atenas" },
-  { id: "GT", nombre: "Guatemala", capital: "Ciudad de Guatemala" },
-  { id: "GW", nombre: "Guinea-Bisáu", capital: "Bisáu" },
-  { id: "GY", nombre: "Guyana", capital: "Georgetown" },
-  { id: "HN", nombre: "Honduras", capital: "Tegucigalpa" },
-  { id: "HT", nombre: "Haití", capital: "Puerto Príncipe" },
-  { id: "HR", nombre: "Croacia", capital: "Zagreb" },
-  { id: "HU", nombre: "Hungría", capital: "Budapest" },
-  { id: "ID", nombre: "Indonesia", capital: " Yakarta" },
-  { id: "IE", nombre: "Irlanda", capital: "Dublín" },
-  { id: "IL", nombre: "Israel", capital: "Jerusalén" },
-  { id: "IN", nombre: "India", capital: "Nueva Delhi" },
-  { id: "IQ", nombre: "Irak", capital: "Bagdad" },
-  { id: "IR", nombre: "Irán", capital: "Teherán" },
-  { id: "IS", nombre: "Islandia", capital: "Reikiavik" },
-  { id: "IT", nombre: "Italia", capital: "Roma" },
-  { id: "JM", nombre: "Jamaica", capital: "Kingston" },
-  { id: "JO", nombre: "Jordania", capital: "Amán" },
-  { id: "JP", nombre: "Japón", capital: "Tokio" },
-  { id: "KE", nombre: "Kenia", capital: "Nairobi" },
-  { id: "KG", nombre: "Kirguistán", capital: "Biskek" },
-  { id: "KH", nombre: "Camboya", capital: "Nom Pen" },
-  { id: "KM", nombre: "Comoras", capital: "Moroni" },
-  { id: "KP", nombre: "Corea del Norte", capital: "Pionyang" },
-  { id: "KR", nombre: "Corea del Sur", capital: "Seúl" },
-  { id: "KW", nombre: "Kuwait", capital: "Kuwait" },
-  { id: "KZ", nombre: "Kazajistán", capital: "Astaná" },
-  { id: "LA", nombre: "Laos", capital: "Vientián" },
-  { id: "LB", nombre: "Líbano", capital: "Beirut" },
-  { id: "LC", nombre: "Santa Lucía", capital: "Castries" },
-  { id: "LK", nombre: "Sri Lanka", capital: "Sri Jayawardenepura Kotte" },
-  { id: "LR", nombre: "Liberia", capital: "Monrovia" },
-  { id: "LS", nombre: "Lesoto", capital: "Maseru" },
-  { id: "LT", nombre: "Lituania", capital: "Vilna" },
-  { id: "LU", nombre: "Luxemburgo", capital: "Luxemburgo" },
-  { id: "LV", nombre: "Letonia", capital: "Riga" },
-  { id: "LY", nombre: "Libia", capital: "Trípoli" },
-  { id: "MA", nombre: "Marruecos", capital: "Rabat" },
-  { id: "MD", nombre: "Moldavia", capital: "Chisináu" },
-  { id: "ME", nombre: "Montenegro", capital: "Podgorica" },
-  { id: "MG", nombre: "Madagascar", capital: "Antananarivo" },
-  { id: "MK", nombre: "Macedonia del Norte", capital: "Skopie" },
-  { id: "ML", nombre: "Malí", capital: "Bamako" },
-  { id: "MM", nombre: "Myanmar", capital: "Naipyidó" },
-  { id: "MN", nombre: "Mongolia", capital: "Ulán Bator" },
-  { id: "MR", nombre: "Mauritania", capital: "Nuakchot" },
-  { id: "MT", nombre: "Malta", capital: "La Valeta" },
-  { id: "MU", nombre: "Mauricio", capital: "Port Louis" },
-  { id: "MV", nombre: "Maldivas", capital: "Malé" },
-  { id: "MW", nombre: "Malaui", capital: "Lilongüe" },
-  { id: "MX", nombre: "México", capital: "Ciudad de México" },
-  { id: "MY", nombre: "Malasia", capital: "Kuala Lumpur" },
-  { id: "MZ", nombre: "Mozambique", capital: "Maputo" },
-  { id: "NA", nombre: "Namibia", capital: "Windhoek" },
-  { id: "NC", nombre: "Nueva Caledonia", capital: "Númea" },
-  { id: "NE", nombre: "Níger", capital: "Niamey" },
-  { id: "NG", nombre: "Nigeria", capital: "Abuya" },
-  { id: "NI", nombre: "Nicaragua", capital: "Managua" },
-  { id: "NL", nombre: "Países Bajos", capital: "Ámsterdam" },
-  { id: "NO", nombre: "Noruega", capital: "Oslo" },
-  { id: "NP", nombre: "Nepal", capital: "Katmandú" },
-  { id: "NZ", nombre: "Nueva Zelanda", capital: "Wellington" },
-  { id: "OM", nombre: "Omán", capital: "Mascate" },
-  { id: "PA", nombre: "Panamá", capital: "Ciudad de Panamá" },
-  { id: "PE", nombre: "Perú", capital: "Lima" },
-  { id: "PG", nombre: "Papúa Nueva Guinea", capital: "Port Moresby" },
-  { id: "PH", nombre: "Filipinas", capital: "Manila" },
-  { id: "PK", nombre: "Pakistán", capital: "Islamabad" },
-  { id: "PL", nombre: "Polonia", capital: "Varsovia" },
-  { id: "PR", nombre: "Puerto Rico", capital: "San Juan" },
-  { id: "PT", nombre: "Portugal", capital: "Lisboa" },
-  { id: "PY", nombre: "Paraguay", capital: "Asunción" },
-  { id: "QA", nombre: "Catar", capital: "Doha" },
-  { id: "RO", nombre: "Rumania", capital: "Bucarest" },
-  { id: "RS", nombre: "Serbia", capital: "Belgrado" },
-  { id: "RU", nombre: "Rusia", capital: "Moscú" },
-  { id: "RW", nombre: "Ruanda", capital: "Kigali" },
-  { id: "SA", nombre: "Arabia Saudita", capital: "Riad" },
-  { id: "SB", nombre: "Islas Salomón", capital: "Honiara" },
-  { id: "SC", nombre: "Seychelles", capital: "Victoria" },
-  { id: "SD", nombre: "Sudán", capital: "Jartum" },
-  { id: "SE", nombre: "Suecia", capital: "Estocolmo" },
-  { id: "SG", nombre: "Singapur", capital: "Singapur" },
-  { id: "SI", nombre: "Eslovenia", capital: "Liubliana" },
-  { id: "SK", nombre: "Eslovaquia", capital: "Bratislava" },
-  { id: "SL", nombre: "Sierra Leona", capital: "Freetown" },
-  { id: "SN", nombre: "Senegal", capital: "Dakar" },
-  { id: "SO", nombre: "Somalia", capital: "Mogadiscio" },
-  { id: "SR", nombre: "Surinam", capital: "Paramaribo" },
-  { id: "SS", nombre: "Sudán del Sur", capital: "Yuba" },
-  { id: "ST", nombre: "Santo Tomé y Príncipe", capital: "Santo Tomé" },
-  { id: "SV", nombre: "El Salvador", capital: "San Salvador" },
-  { id: "SY", nombre: "Siria", capital: "Damasco" },
-  { id: "SZ", nombre: "Esuatini", capital: "Mbabane" },
-  { id: "TD", nombre: "Chad", capital: "Yamena" },
-  { id: "TG", nombre: "Togo", capital: "Lomé" },
-  { id: "TH", nombre: "Tailandia", capital: "Bangkok" },
-  { id: "TJ", nombre: "Tayikistán", capital: "Dusambé" },
-  { id: "TM", nombre: "Turkmenistán", capital: "Ashgabat" },
-  { id: "TN", nombre: "Túnez", capital: "Túnez" },
-  { id: "TR", nombre: "Turquía", capital: "Ankara" },
-  { id: "TT", nombre: "Trinidad y Tobago", capital: "Puerto España" },
-  { id: "TW", nombre: "Taiwán", capital: "Taipéi" },
-  { id: "TZ", nombre: "Tanzania", capital: "Dodoma" },
-  { id: "UA", nombre: "Ucrania", capital: "Kiev" },
-  { id: "UG", nombre: "Uganda", capital: "Kampala" },
-  { id: "US", nombre: "Estados Unidos", capital: "Washington D.C." },
-  { id: "UY", nombre: "Uruguay", capital: "Montevideo" },
-  { id: "UZ", nombre: "Uzbekistán", capital: "Taskent" },
-  { id: "VC", nombre: "San Vicente y las Granadinas", capital: "Kingstown" },
-  { id: "VE", nombre: "Venezuela", capital: "Caracas" },
-  { id: "VN", nombre: "Vietnam", capital: "Hanói" },
-  { id: "VU", nombre: "Vanuatu", capital: "Port Vila" },
-  { id: "YE", nombre: "Yemen", capital: "Saná" },
-  { id: "ZA", nombre: "Sudáfrica", capital: "Pretoria" },
-  { id: "ZM", nombre: "Zambia", capital: "Lusaka" },
-  { id: "ZW", nombre: "Zimbabue", capital: "Harare" }
+  { id: "AE", nombre: "Emiratos Árabes Unidos", capital: "Abu Dabi", population: 9890402, area: 83600, language: "Árabe" },
+  { id: "AF", nombre: "Afganistán", capital: "Kabul", population: 38928346, area: 652230, language: "Pastún" },
+  { id: "AL", nombre: "Albania", capital: "Tirana", population: 2877797, area: 28748, language: "Albanés" },
+  { id: "AM", nombre: "Armenia", capital: "Ereván", population: 2963243, area: 29743, language: "Armenio" },
+  { id: "AO", nombre: "Angola", capital: "Luanda", population: 32866272, area: 1246700, language: "Portugués" },
+  { id: "AR", nombre: "Argentina", capital: "Buenos Aires", population: 45195774, area: 2780400, language: "Español" },
+  { id: "AT", nombre: "Austria", capital: "Viena", population: 9006398, area: 83871, language: "Alemán" },
+  { id: "AU", nombre: "Australia", capital: "Canberra", population: 25499884, area: 7692024, language: "Inglés" },
+  { id: "AZ", nombre: "Azerbaiyán", capital: "Bakú", population: 10139177, area: 86600, language: "Azerí" },
+  { id: "BA", nombre: "Bosnia y Herzegovina", capital: "Sarajevo", population: 3280819, area: 51197, language: "Bosnio" },
+  { id: "BD", nombre: "Bangladés", capital: "Daca", population: 164689383, area: 147570, language: "Bengalí" },
+  { id: "BE", nombre: "Bélgica", capital: "Bruselas", population: 11589623, area: 30528, language: "Neerlandés" },
+  { id: "BF", nombre: "Burkina Faso", capital: "Uagadugú", population: 20903273, area: 274200, language: "Francés" },
+  { id: "BG", nombre: "Bulgaria", capital: "Sofía", population: 6948445, area: 110879, language: "Búlgaro" },
+  { id: "BI", nombre: "Burundi", capital: "Gitega", population: 11890784, area: 27834, language: "Kirundi" },
+  { id: "BJ", nombre: "Benín", capital: "Porto-Novo", population: 12123200, area: 112622, language: "Francés" },
+  { id: "BN", nombre: "Brunéi", capital: "Bandar Seri Begawan", population: 437479, area: 5765, language: "Malayo" },
+  { id: "BO", nombre: "Bolivia", capital: "Sucre", population: 11673021, area: 1098581, language: "Español" },
+  { id: "BR", nombre: "Brasil", capital: "Brasilia", population: 212559417, area: 8515767, language: "Portugués" },
+  { id: "BS", nombre: "Bahamas", capital: "Nasáu", population: 393244, area: 13943, language: "Inglés" },
+  { id: "BT", nombre: "Bután", capital: "Timbu", population: 771608, area: 38394, language: "Dzongkha" },
+  { id: "BW", nombre: "Botsuana", capital: "Gaborone", population: 2351627, area: 581730, language: "Inglés" },
+  { id: "BY", nombre: "Bielorrusia", capital: "Minsk", population: 9449323, area: 207600, language: "Bielorruso" },
+  { id: "BZ", nombre: "Belice", capital: "Belmopán", population: 397628, area: 22966, language: "Inglés" },
+  { id: "CA", nombre: "Canadá", capital: "Ottawa", population: 37742154, area: 9984670, language: "Inglés/Francés" },
+  { id: "CD", nombre: "República Democrática del Congo", capital: "Kinshasa", population: 89561403, area: 2344858, language: "Francés" },
+  { id: "CF", nombre: "República Centroafricana", capital: "Bangui", population: 4829767, area: 622984, language: "Francés" },
+  { id: "CG", nombre: "Congo", capital: "Brazzaville", population: 5518087, area: 342000, language: "Francés" },
+  { id: "CH", nombre: "Suiza", capital: "Berna", population: 8654622, area: 41284, language: "Alemán/Francés/Italiano" },
+  { id: "CI", nombre: "Costa de Marfil", capital: "Yamoussoukro", population: 26378274, area: 322463, language: "Francés" },
+  { id: "CL", nombre: "Chile", capital: "Santiago", population: 19116201, area: 756102, language: "Español" },
+  { id: "CM", nombre: "Camerún", capital: "Yaundé", population: 26545863, area: 475442, language: "Francés/Inglés" },
+  { id: "CN", nombre: "China", capital: "Pekín", population: 1439323776, area: 9596961, language: "Chino" },
+  { id: "CO", nombre: "Colombia", capital: "Bogotá", population: 50882891, area: 1141748, language: "Español" },
+  { id: "CR", nombre: "Costa Rica", capital: "San José", population: 5094118, area: 51100, language: "Español" },
+  { id: "CU", nombre: "Cuba", capital: "La Habana", population: 11326616, area: 109884, language: "Español" },
+  { id: "CV", nombre: "Cabo Verde", capital: "Praia", population: 555987, area: 4033, language: "Portugués" },
+  { id: "CY", nombre: "Chipre", capital: "Nicosia", population: 1207359, area: 9251, language: "Griego" },
+  { id: "CZ", nombre: "Chequia", capital: "Praga", population: 10708981, area: 78865, language: "Checo" },
+  { id: "DE", nombre: "Alemania", capital: "Berlín", population: 83783942, area: 357022, language: "Alemán" },
+  { id: "DJ", nombre: "Yibuti", capital: "Yibuti", population: 988000, area: 23200, language: "Francés/Árabe" },
+  { id: "DK", nombre: "Dinamarca", capital: "Copenhague", population: 5792202, area: 43094, language: "Danés" },
+  { id: "DM", nombre: "Dominica", capital: "Roseau", population: 71986, area: 751, language: "Inglés" },
+  { id: "DO", nombre: "República Dominicana", capital: "Santo Domingo", population: 10847910, area: 48671, language: "Español" },
+  { id: "DZ", nombre: "Argelia", capital: "Argel", population: 43851044, area: 2381741, language: "Árabe" },
+  { id: "EC", nombre: "Ecuador", capital: "Quito", population: 17643054, area: 283561, language: "Español" },
+  { id: "EE", nombre: "Estonia", capital: "Tallin", population: 1326535, area: 45227, language: "Estonio" },
+  { id: "EG", nombre: "Egipto", capital: "El Cairo", population: 102334404, area: 1002450, language: "Árabe" },
+  { id: "ER", nombre: "Eritrea", capital: "Asmara", population: 3546421, area: 117600, language: "Tigriña" },
+  { id: "ES", nombre: "España", capital: "Madrid", population: 46754778, area: 505990, language: "Español" },
+  { id: "ET", nombre: "Etiopía", capital: "Adís Abeba", population: 114963588, area: 1104300, language: "Amárico" },
+  { id: "FK", nombre: "Islas Malvinas", capital: "Puerto Stanley", population: 3480, area: 12173, language: "Inglés" },
+  { id: "FI", nombre: "Finlandia", capital: "Helsinki", population: 5545475, area: 338424, language: "Finés" },
+  { id: "FR", nombre: "Francia", capital: "París", population: 65273511, area: 643801, language: "Francés" },
+  { id: "GA", nombre: "Gabón", capital: "Libreville", population: 2225734, area: 267668, language: "Francés" },
+  { id: "GB", nombre: "Reino Unido", capital: "Londres", population: 67886011, area: 242495, language: "Inglés" },
+  { id: "GE", nombre: "Georgia", capital: "Tiflis", population: 3989167, area: 69700, language: "Georgiano" },
+  { id: "GH", nombre: "Ghana", capital: "Acra", population: 31072940, area: 238533, language: "Inglés" },
+  { id: "GL", nombre: "Groenlandia", capital: "Nuuk", population: 56770, area: 2166086, language: "Groenlandés" },
+  { id: "GM", nombre: "Gambia", capital: "Banjul", population: 2416668, area: 11295, language: "Inglés" },
+  { id: "GN", nombre: "Guinea", capital: "Conakry", population: 13132795, area: 245857, language: "Francés" },
+  { id: "GQ", nombre: "Guinea Ecuatorial", capital: "Malabo", population: 1402985, area: 28051, language: "Español/Francés" },
+  { id: "GR", nombre: "Grecia", capital: "Atenas", population: 10423054, area: 131957, language: "Griego" },
+  { id: "GT", nombre: "Guatemala", capital: "Ciudad de Guatemala", population: 17915568, area: 108889, language: "Español" },
+  { id: "GW", nombre: "Guinea-Bisáu", capital: "Bisáu", population: 1968001, area: 36125, language: "Portugués" },
+  { id: "GY", nombre: "Guyana", capital: "Georgetown", population: 786552, area: 214969, language: "Inglés" },
+  { id: "HN", nombre: "Honduras", capital: "Tegucigalpa", population: 9904607, area: 112492, language: "Español" },
+  { id: "HT", nombre: "Haití", capital: "Puerto Príncipe", population: 11402528, area: 27750, language: "Francés/Criollo" },
+  { id: "HR", nombre: "Croacia", capital: "Zagreb", population: 4105267, area: 56594, language: "Croata" },
+  { id: "HU", nombre: "Hungría", capital: "Budapest", population: 9660351, area: 93030, language: "Húngaro" },
+  { id: "ID", nombre: "Indonesia", capital: " Yakarta", population: 273523615, area: 1904569, language: "Indonesio" },
+  { id: "IE", nombre: "Irlanda", capital: "Dublín", population: 4937786, area: 70273, language: "Inglés/Irlandés" },
+  { id: "IL", nombre: "Israel", capital: "Jerusalén", population: 8655535, area: 22072, language: "Hebreo" },
+  { id: "IN", nombre: "India", capital: "Nueva Delhi", population: 1380004385, area: 3287263, language: "Hindi/Inglés" },
+  { id: "IQ", nombre: "Irak", capital: "Bagdad", population: 40222493, area: 438317, language: "Árabe" },
+  { id: "IR", nombre: "Irán", capital: "Teherán", population: 83992949, area: 1648195, language: "Persa" },
+  { id: "IS", nombre: "Islandia", capital: "Reikiavik", population: 341243, area: 103000, language: "Islandés" },
+  { id: "IT", nombre: "Italia", capital: "Roma", population: 60461826, area: 301336, language: "Italiano" },
+  { id: "JM", nombre: "Jamaica", capital: "Kingston", population: 2961167, area: 10991, language: "Inglés" },
+  { id: "JO", nombre: "Jordania", capital: "Amán", population: 10203134, area: 89342, language: "Árabe" },
+  { id: "JP", nombre: "Japón", capital: "Tokio", population: 126476461, area: 377975, language: "Japonés" },
+  { id: "KE", nombre: "Kenia", capital: "Nairobi", population: 53771296, area: 580367, language: "Inglés/Suajili" },
+  { id: "KG", nombre: "Kirguistán", capital: "Biskek", population: 6524195, area: 199951, language: "Kirguís" },
+  { id: "KH", nombre: "Camboya", capital: "Nom Pen", population: 16718965, area: 181035, language: "Jemer" },
+  { id: "KM", nombre: "Comoras", capital: "Moroni", population: 869601, area: 2235, language: "Árabe/Francés" },
+  { id: "KP", nombre: "Corea del Norte", capital: "Pionyang", population: 25778816, area: 120538, language: "Coreano" },
+  { id: "KR", nombre: "Corea del Sur", capital: "Seúl", population: 51269185, area: 100210, language: "Coreano" },
+  { id: "KW", nombre: "Kuwait", capital: "Kuwait", population: 4270571, area: 17818, language: "Árabe" },
+  { id: "KZ", nombre: "Kazajistán", capital: "Astaná", population: 18776707, area: 2724900, language: "Kazajo" },
+  { id: "LA", nombre: "Laos", capital: "Vientián", population: 7275560, area: 236800, language: "Lao" },
+  { id: "LB", nombre: "Líbano", capital: "Beirut", population: 6825445, area: 10452, language: "Árabe" },
+  { id: "LC", nombre: "Santa Lucía", capital: "Castries", population: 183627, area: 616, language: "Inglés" },
+  { id: "LK", nombre: "Sri Lanka", capital: "Sri Jayawardenepura Kotte", population: 21413249, area: 65610, language: "Cingalés/Támil" },
+  { id: "LR", nombre: "Liberia", capital: "Monrovia", population: 5057681, area: 111369, language: "Inglés" },
+  { id: "LS", nombre: "Lesoto", capital: "Maseru", population: 2142249, area: 30355, language: "Inglés/Sesotho" },
+  { id: "LT", nombre: "Lituania", capital: "Vilna", population: 2722289, area: 65300, language: "Lituano" },
+  { id: "LU", nombre: "Luxemburgo", capital: "Luxemburgo", population: 625978, area: 2586, language: "Luxemburgués" },
+  { id: "LV", nombre: "Letonia", capital: "Riga", population: 1886198, area: 64559, language: "Letón" },
+  { id: "LY", nombre: "Libia", capital: "Trípoli", population: 6871292, area: 1759540, language: "Árabe" },
+  { id: "MA", nombre: "Marruecos", capital: "Rabat", population: 36910560, area: 446550, language: "Árabe" },
+  { id: "MD", nombre: "Moldavia", capital: "Chisináu", population: 4033963, area: 33846, language: "Rumano" },
+  { id: "ME", nombre: "Montenegro", capital: "Podgorica", population: 628066, area: 13812, language: "Montenegrino" },
+  { id: "MG", nombre: "Madagascar", capital: "Antananarivo", population: 27691018, area: 587041, language: "Malgache" },
+  { id: "MK", nombre: "Macedonia del Norte", capital: "Skopie", population: 2083374, area: 25713, language: "Macedonio" },
+  { id: "ML", nombre: "Malí", capital: "Bamako", population: 20250833, area: 1240192, language: "Francés" },
+  { id: "MM", nombre: "Myanmar", capital: "Naipyidó", population: 54409800, area: 676578, language: "Birmano" },
+  { id: "MN", nombre: "Mongolia", capital: "Ulán Bator", population: 3278290, area: 1564116, language: "Mongol" },
+  { id: "MR", nombre: "Mauritania", capital: "Nuakchot", population: 4649658, area: 1030700, language: "Árabe" },
+  { id: "MT", nombre: "Malta", capital: "La Valeta", population: 441543, area: 316, language: "Maltés" },
+  { id: "MU", nombre: "Mauricio", capital: "Port Louis", population: 1271768, area: 2040, language: "Inglés" },
+  { id: "MV", nombre: "Maldivas", capital: "Malé", population: 540544, area: 298, language: "Maldivo" },
+  { id: "MW", nombre: "Malaui", capital: "Lilongüe", population: 19129952, area: 118484, language: "Inglés/Chichewa" },
+  { id: "MX", nombre: "México", capital: "Ciudad de México", population: 128932753, area: 1964375, language: "Español" },
+  { id: "MY", nombre: "Malasia", capital: "Kuala Lumpur", population: 32365999, area: 330803, language: "Malayo" },
+  { id: "MZ", nombre: "Mozambique", capital: "Maputo", population: 31255435, area: 801590, language: "Portugués" },
+  { id: "NA", nombre: "Namibia", capital: "Windhoek", population: 2540905, area: 824292, language: "Inglés" },
+  { id: "NC", nombre: "Nueva Caledonia", capital: "Númea", population: 285000, area: 18575, language: "Francés" },
+  { id: "NE", nombre: "Níger", capital: "Niamey", population: 24206644, area: 1267000, language: "Francés" },
+  { id: "NG", nombre: "Nigeria", capital: "Abuya", population: 206139589, area: 923768, language: "Inglés" },
+  { id: "NI", nombre: "Nicaragua", capital: "Managua", population: 6624554, area: 130373, language: "Español" },
+  { id: "NL", nombre: "Países Bajos", capital: "Ámsterdam", population: 17134872, area: 41543, language: "Neerlandés" },
+  { id: "NO", nombre: "Noruega", capital: "Oslo", population: 5421241, area: 385207, language: "Noruego" },
+  { id: "NP", nombre: "Nepal", capital: "Katmandú", population: 29136808, area: 147181, language: "Nepalí" },
+  { id: "NZ", nombre: "Nueva Zelanda", capital: "Wellington", population: 4822233, area: 268838, language: "Inglés/Maorí" },
+  { id: "OM", nombre: "Omán", capital: "Mascate", population: 5106626, area: 309500, language: "Árabe" },
+  { id: "PA", nombre: "Panamá", capital: "Ciudad de Panamá", population: 4314767, area: 75417, language: "Español" },
+  { id: "PE", nombre: "Perú", capital: "Lima", population: 32971854, area: 1285216, language: "Español" },
+  { id: "PG", nombre: "Papúa Nueva Guinea", capital: "Port Moresby", population: 8947024, area: 462840, language: "Inglés/Tok Pisin" },
+  { id: "PH", nombre: "Filipinas", capital: "Manila", population: 109581078, area: 300000, language: "Filipino/Inglés" },
+  { id: "PK", nombre: "Pakistán", capital: "Islamabad", population: 220892340, area: 881913, language: "Urdu/Inglés" },
+  { id: "PL", nombre: "Polonia", capital: "Varsovia", population: 37846611, area: 312679, language: "Polaco" },
+  { id: "PR", nombre: "Puerto Rico", capital: "San Juan", population: 3285889, area: 9104, language: "Español" },
+  { id: "PT", nombre: "Portugal", capital: "Lisboa", population: 10196709, area: 92212, language: "Portugués" },
+  { id: "PY", nombre: "Paraguay", capital: "Asunción", population: 7132538, area: 406752, language: "Español/Guaraní" },
+  { id: "QA", nombre: "Catar", capital: "Doha", population: 2881053, area: 11586, language: "Árabe" },
+  { id: "RO", nombre: "Rumania", capital: "Bucarest", population: 19237691, area: 238391, language: "Rumano" },
+  { id: "RS", nombre: "Serbia", capital: "Belgrado", population: 8737371, area: 88361, language: "Serbio" },
+  { id: "RU", nombre: "Rusia", capital: "Moscú", population: 145934462, area: 17098242, language: "Ruso" },
+  { id: "RW", nombre: "Ruanda", capital: "Kigali", population: 12952218, area: 26338, language: "Kinyarwanda/Francés" },
+  { id: "SA", nombre: "Arabia Saudita", capital: "Riad", population: 34813871, area: 2149690, language: "Árabe" },
+  { id: "SB", nombre: "Islas Salomón", capital: "Honiara", population: 686884, area: 28896, language: "Inglés" },
+  { id: "SC", nombre: "Seychelles", capital: "Victoria", population: 98347, area: 455, language: "Francés/Inglés" },
+  { id: "SD", nombre: "Sudán", capital: "Jartum", population: 43849260, area: 1886068, language: "Árabe/Inglés" },
+  { id: "SE", nombre: "Suecia", capital: "Estocolmo", population: 10099265, area: 450295, language: "Sueco" },
+  { id: "SG", nombre: "Singapur", capital: "Singapur", population: 5850342, area: 733, language: "Inglés/Malayo/Chino" },
+  { id: "SI", nombre: "Eslovenia", capital: "Liubliana", population: 2078938, area: 20273, language: "Esloveno" },
+  { id: "SK", nombre: "Eslovaquia", capital: "Bratislava", population: 5459642, area: 49035, language: "Eslovaco" },
+  { id: "SL", nombre: "Sierra Leona", capital: "Freetown", population: 7976983, area: 71740, language: "Inglés" },
+  { id: "SN", nombre: "Senegal", capital: "Dakar", population: 16743927, area: 196722, language: "Francés" },
+  { id: "SO", nombre: "Somalia", capital: "Mogadiscio", population: 15893222, area: 637657, language: "Somalí/Árabe" },
+  { id: "SR", nombre: "Surinam", capital: "Paramaribo", population: 586632, area: 163820, language: "Neerlandés" },
+  { id: "SS", nombre: "Sudán del Sur", capital: "Yuba", population: 11193725, area: 644329, language: "Inglés/Árabe" },
+  { id: "ST", nombre: "Santo Tomé y Príncipe", capital: "Santo Tomé", population: 219159, area: 964, language: "Portugués" },
+  { id: "SV", nombre: "El Salvador", capital: "San Salvador", population: 6486205, area: 21041, language: "Español" },
+  { id: "SY", nombre: "Siria", capital: "Damasco", population: 17500658, area: 185180, language: "Árabe" },
+  { id: "SZ", nombre: "Esuatini", capital: "Mbabane", population: 1160164, area: 17364, language: "Inglés/Siswati" },
+  { id: "TD", nombre: "Chad", capital: "Yamena", population: 16425864, area: 1284000, language: "Francés/Árabe" },
+  { id: "TG", nombre: "Togo", capital: "Lomé", population: 8278724, area: 56785, language: "Francés" },
+  { id: "TH", nombre: "Tailandia", capital: "Bangkok", population: 69799978, area: 513120, language: "Tailandés" },
+  { id: "TJ", nombre: "Tayikistán", capital: "Dusambé", population: 9537645, area: 143100, language: "Tayiko" },
+  { id: "TM", nombre: "Turkmenistán", capital: "Ashgabat", population: 6031200, area: 488100, language: "Turcomano" },
+  { id: "TN", nombre: "Túnez", capital: "Túnez", population: 11818619, area: 163610, language: "Árabe" },
+  { id: "TR", nombre: "Turquía", capital: "Ankara", population: 84339067, area: 783562, language: "Turco" },
+  { id: "TT", nombre: "Trinidad y Tobago", capital: "Puerto España", population: 1399488, area: 5130, language: "Inglés" },
+  { id: "TW", nombre: "Taiwán", capital: "Taipéi", population: 23816775, area: 36193, language: "Chino" },
+  { id: "TZ", nombre: "Tanzania", capital: "Dodoma", population: 59734218, area: 945087, language: "Suajili/Inglés" },
+  { id: "UA", nombre: "Ucrania", capital: "Kiev", population: 43733762, area: 603550, language: "Ucraniano" },
+  { id: "UG", nombre: "Uganda", capital: "Kampala", population: 45741007, area: 241550, language: "Inglés/Suajili" },
+  { id: "US", nombre: "Estados Unidos", capital: "Washington D.C.", population: 331002651, area: 9833520, language: "Inglés" },
+  { id: "UY", nombre: "Uruguay", capital: "Montevideo", population: 3473730, area: 176215, language: "Español" },
+  { id: "UZ", nombre: "Uzbekistán", capital: "Taskent", population: 33469203, area: 447400, language: "Uzbeko" },
+  { id: "VC", nombre: "San Vicente y las Granadinas", capital: "Kingstown", population: 110940, area: 389, language: "Inglés" },
+  { id: "VE", nombre: "Venezuela", capital: "Caracas", population: 28435940, area: 916445, language: "Español" },
+  { id: "VN", nombre: "Vietnam", capital: "Hanói", population: 97338579, area: 331212, language: "Vietnamita" },
+  { id: "VU", nombre: "Vanuatu", capital: "Port Vila", population: 307145, area: 12189, language: "Bislamá/Inglés/Francés" },
+  { id: "YE", nombre: "Yemen", capital: "Saná", population: 29825964, area: 527968, language: "Árabe" },
+  { id: "ZA", nombre: "Sudáfrica", capital: "Pretoria", population: 59308690, area: 1219090, language: "Inglés/Zulú/Xhosa" },
+  { id: "ZM", nombre: "Zambia", capital: "Lusaka", population: 18383955, area: 752618, language: "Inglés" },
+  { id: "ZW", nombre: "Zimbabue", capital: "Harare", population: 14862924, area: 390757, language: "Inglés/Shona" }
 ];
 
 /* ============================================
@@ -1913,7 +2080,8 @@ const state = {
   correctIds: new Set(),
   timerInterval: null,
   timeLeft: 15,
-  paused: false
+  paused: false,
+  hintUsed: false
 };
 
 /* ============================================
@@ -1986,6 +2154,7 @@ function startTimer() {
         return;
       }
       state.targetIndex++;
+      resetHintUI();
       setTimeout(() => setNextTarget(), 600);
     }
   }, 1000);
@@ -2032,13 +2201,15 @@ function renderModeDropdown() {
       <button onclick="showScreen('start')">← Volver al Inicio</button>
       <button onclick="startGame('country')">🌍 Adivinar País</button>
       <button onclick="startGame('capital')">🏛️ Adivinar Capital</button>
+      <button onclick="startGame('flag')">🏁 Adivinar por Bandera</button>
     `;
   } else {
-    const otherMode = state.mode === 'country' ? 'capital' : 'country';
-    const otherLabel = state.mode === 'country' ? '🏛️ Adivinar Capital' : '🌍 Adivinar País';
+    const modes = ['country', 'capital', 'flag'];
+    const labels = { country: '🌍 Adivinar País', capital: '🏛️ Adivinar Capital', flag: '🏁 Adivinar por Bandera' };
+    const others = modes.filter(m => m !== state.mode);
     dropdown.innerHTML = `
       <button onclick="restartGame()">🔄 Nuevo Juego</button>
-      <button onclick="switchMode('${otherMode}')">${otherLabel}</button>
+      ${others.map(m => `<button onclick="switchMode('${m}')">${labels[m]}</button>`).join('')}
       <button onclick="startExplore()">🗺️ Explorar</button>
     `;
   }
@@ -2061,6 +2232,7 @@ function startGame(mode) {
   state.score = 0;
   state.targetIndex = 0;
   state.correctIds = new Set();
+  state.hintUsed = false;
 
   state.shuffledCountries = shuffleArray(COUNTRIES);
 
@@ -2080,12 +2252,43 @@ function startGame(mode) {
   if (gameMapSvg) applyMapTransform(gameMapSvg);
   setupGameZoom();
 
+  resetHintUI();
   updateGameUI();
   renderModeDropdown();
   showScreen('game');
   playStartGameSound();
   setNextTarget();
   startTimer();
+}
+
+function resetHintUI() {
+  state.hintUsed = false;
+  document.getElementById('hint-text-flag').style.display = 'none';
+  document.getElementById('hint-flag').style.display = 'none';
+  document.getElementById('hint-btn-flag').style.display = '';
+  document.getElementById('hint-btn-flag').disabled = false;
+  document.getElementById('hint-btn-game').style.display = 'none';
+  document.getElementById('hint-btn-game').disabled = false;
+  document.getElementById('target-flag').style.display = 'none';
+}
+
+function useHint() {
+  if (state.hintUsed || !state.currentTarget) return;
+  state.hintUsed = true;
+  state.score = Math.max(0, state.score - 1);
+  updateGameUI();
+
+  const code = state.currentTarget.id.toLowerCase();
+
+  if (state.mode === 'flag') {
+    document.getElementById('hint-text-flag').textContent = `El país es: ${state.currentTarget.nombre}`;
+    document.getElementById('hint-text-flag').style.display = 'block';
+    document.getElementById('hint-btn-flag').disabled = true;
+  } else {
+    document.getElementById('hint-flag-img').src = `https://flagcdn.com/w160/${code}.png`;
+    document.getElementById('hint-flag').style.display = 'flex';
+    document.getElementById('hint-btn-game').disabled = true;
+  }
 }
 
 /* ============================================
@@ -2104,7 +2307,9 @@ function updateGameUI() {
   }
 
   label.textContent =
-    state.mode === 'country' ? '🌍 Adivinar País ▾' : '🏛️ Adivinar Capital ▾';
+    state.mode === 'country' ? '🌍 Adivinar País ▾' :
+    state.mode === 'capital' ? '🏛️ Adivinar Capital ▾' :
+    '🏁 Adivinar por Bandera ▾';
 
   document.getElementById('game-score').textContent = `Puntos: ${state.score}`;
 
@@ -2129,10 +2334,30 @@ function setNextTarget() {
   playNextTargetSound();
 
   const popup = document.getElementById('target-popup');
-  if (state.mode === 'country') {
-    popup.textContent = `🔍 Encuentra: ${country.nombre}`;
+  const flagEl = document.getElementById('target-flag');
+  const flagImg = document.getElementById('target-flag-img');
+  const hintBtnGame = document.getElementById('hint-btn-game');
+
+  state.hintUsed = false;
+  document.getElementById('hint-text-flag').style.display = 'none';
+  document.getElementById('hint-flag').style.display = 'none';
+
+  if (state.mode === 'flag') {
+    popup.style.display = 'none';
+    hintBtnGame.style.display = 'none';
+    flagEl.style.display = 'block';
+    flagImg.src = `https://flagcdn.com/w320/${country.id.toLowerCase()}.png`;
+    document.getElementById('hint-btn-flag').style.display = '';
+    document.getElementById('hint-btn-flag').disabled = false;
   } else {
-    popup.textContent = `🔍 ¿A qué país pertenece ${country.capital}?`;
+    popup.style.display = '';
+    flagEl.style.display = 'none';
+    hintBtnGame.style.display = 'block';
+    hintBtnGame.disabled = false;
+    document.getElementById('hint-btn-flag').style.display = 'none';
+    popup.textContent = state.mode === 'country'
+      ? `🔍 Encuentra: ${country.nombre}`
+      : `🔍 ¿A qué país pertenece ${country.capital}?`;
   }
 
   resetTimer();
@@ -2191,6 +2416,7 @@ function handleIncorrect(el) {
     setTimeout(() => endGame(false), 500);
   } else {
     state.targetIndex++;
+    resetHintUI();
     setTimeout(() => setNextTarget(), 600);
   }
 }
@@ -2239,15 +2465,16 @@ function applyMapTransform(svgEl) {
 function handleMapZoom(e, svgEl) {
   e.preventDefault();
   const rect = svgEl.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
+
+  const mx = e.clientX - rect.left + mapTx;
+  const my = e.clientY - rect.top + mapTy;
 
   const delta = e.deltaY > 0 ? -0.1 : 0.1;
   const newZoom = Math.min(MAP_MAX_ZOOM, Math.max(MAP_MIN_ZOOM, mapZoom + delta));
   const ratio = newZoom / mapZoom;
 
-  mapTx = mouseX - (mouseX - mapTx) * ratio;
-  mapTy = mouseY - (mouseY - mapTy) * ratio;
+  mapTx = mx - (mx - mapTx) * ratio;
+  mapTy = my - (my - mapTy) * ratio;
   mapZoom = newZoom;
 
   applyMapTransform(svgEl);
@@ -2445,14 +2672,31 @@ function handleExploreEnter(e) {
   const info = document.getElementById('explore-country-info');
   info.classList.add('active');
 
-  document.getElementById('explore-flag').textContent = isoToFlag(country.id);
+  const img = document.getElementById('explore-flag-img');
+  const emoji = document.getElementById('explore-flag-emoji');
+  emoji.textContent = isoToFlag(country.id);
+  img.src = `https://flagcdn.com/w320/${country.id.toLowerCase()}.png`;
+  img.style.display = 'block';
+  emoji.style.display = 'none';
+  img.onerror = () => { img.style.display = 'none'; emoji.style.display = 'flex'; };
+  img.onload = () => { img.style.display = 'block'; emoji.style.display = 'none'; };
+
   document.getElementById('explore-name').textContent = country.nombre;
   document.getElementById('explore-capital').textContent = country.capital;
+  document.getElementById('explore-language').textContent = country.language || '—';
+  document.getElementById('explore-population').textContent =
+    country.population ? country.population.toLocaleString('es-AR') + ' hab.' : '—';
+  document.getElementById('explore-area').textContent =
+    country.area ? country.area.toLocaleString('es-AR') + ' km²' : '—';
 }
 
 function handleExploreLeave() {
   document.getElementById('explore-placeholder').style.display = '';
   document.getElementById('explore-country-info').classList.remove('active');
+  const img = document.getElementById('explore-flag-img');
+  img.src = '';
+  img.style.display = 'none';
+  document.getElementById('explore-flag-emoji').style.display = 'none';
 }
 
 /* ============================================
