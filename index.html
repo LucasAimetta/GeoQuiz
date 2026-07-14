@@ -497,7 +497,7 @@ button:active {
 }
 
 .target-flag img {
-  width: 200px;
+  width: 150px;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   border: 2px solid var(--accent);
@@ -2598,7 +2598,13 @@ function startExplore() {
   }
 
   const svg = container.querySelector('svg');
-  if (svg) applyMapTransform(svg);
+  if (svg) {
+    svg.querySelectorAll('.country').forEach(el => {
+      el.classList.remove('correct');
+      el.style.fill = '';
+    });
+    applyMapTransform(svg);
+  }
 
   updateGameUI();
   renderModeDropdown();
